@@ -27,8 +27,7 @@ As shown above, I have opted for the introduction of five 3D convolutions, one a
 
 ## UCF-101 Dataset
 
-[UCF-101](https://www.crcv.ucf.edu/data/UCF101.php) is an action recognition data set of realistic action videos, collected from YouTube, having 101 action categories. It has served the Deep Learning community well for many years and continues to be used. One thing to know when analysing the results below, is that despite its 13320 videos and 100+ clips for each of the 101 action categories, it is actually a relatively small data set for the task because of the low variability. This results in strong over-fitting that makes the comparison of different architectures difficult. All the clips are taken from only 2.5k distinct videos. For example there can be 7 clips from one video of a person brushing their hair.
-This means that there is far less variation than if the action in the clip was performed by a different person. Example frames of some of the human actions performed in UCF101 are shown below.
+[UCF-101](https://www.crcv.ucf.edu/data/UCF101.php) is an action recognition data set of realistic action videos, collected from YouTube, having 101 action categories. It has served the Deep Learning community well for many years and continues to be used. One thing to know when analysing the results below, is that despite its 13320 videos and 100+ clips for each of the 101 action categories, it is actually a relatively small data set for the task because of its low variability. This results in strong over-fitting on most recent architectures which makes their comparison difficult. All the clips are taken from only 2.5k distinct videos. For example there can be 7 clips from one video of a person playing piano. This means that there is far less variation than if the action in each clip was performed by a different person. Example frames of some of the human actions in UCF-101 are shown below.
 
 ![UCF101 action examples](assets/UCF101.jpg)
 
