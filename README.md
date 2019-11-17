@@ -34,16 +34,15 @@ As shown above, I have opted for the introduction of five 3D convolutions, one a
 
 ## Training and Test Details
 
-To facilitate results comparison and unless otherwise stated, the procedure described below applies to both MiCT-ResNet and 3D-ResNet.
+To facilitate results comparison and unless otherwise stated, the procedure described below applies to both MiCT-ResNet and 3D-ResNet. 
 
-* **Backbone:** The temporal stride is 16 and the spatial stride is 32. The first 3D convolution has a temporal stride of 1 to fully harvest the input sequence. Weights are initialised from ImageNet pre-trained weights. For 3D-ResNet, the 3D filters are bootstrapped by repeating the weights of the 2D filters N times along the temporal dimension, and rescaling them by dividing by N. 
+* **Backbone:** All experiments are based on the 18 layers version of the ResNet backbone. The temporal stride is 16 and the spatial stride is 32. The first 3D convolution has a temporal stride of 1 to fully harvest the input sequence. Weights are initialised from ImageNet pre-trained weights. For 3D-ResNet, the 3D filters are bootstrapped by repeating the weights of the 2D filters N times along the temporal dimension, and rescaling them by dividing by N. 
 
 * **Optimizer and Regularization:** SGD is used with a learning rate of 1e-2 and a weight decay of 5e-4. These parameters have been selected using grid search. The training of Mict-ResNet-18 lasts 120 epochs with the learning rate divided by 10 after 80 epochs. The training of 3D-ResNet-18 lasts 90 epochs with the learning rate divided by 10 after 40 and 80 epochs. The batch size is set to 128 video clips of 16 frames each. 50% dropout is applied just before the output layer.
 
-* **Data Augmentation:** The literature indicates that UCF-101 does not have enough data and variation to avoid over-fitting on models with 3D convolutions. MiCT-ResNet is no exception. The problem can be resolved by pre-training the networks on Kinetics or any other large scale data set. 
-I have used the full arsenal of augmentation techniques to reduce over-fitting as much as possible with temporal down-sampling, horizontal flipping, corner/center cropping at different random sizes and aspect ratios (more on this in the next bullet point), plus a combination of random brightness, contrast, and color adjustments. All frames of the same clip are applied identical transformations.
+* **Data Augmentation:** The literature indicates that UCF-101 does not have enough data and variation to avoid over-fitting on models with 3D convolutions. MiCT-ResNet is no exception. The problem can be resolved by pre-training the networks on Kinetics or any other large scale data set (out of the scope of this repository). I have used the full arsenal of augmentation techniques to reduce over-fitting as much as possible with temporal down-sampling, horizontal flipping, corner/center cropping at different random sizes and aspect ratios (more on this in the next bullet point), plus a combination of random brightness, contrast, and color adjustments. All frames of the same clip are applied identical transformations.
 
-* **Video Preparation:** During training, each video is randomly down-sampled along the temporal dimension and a set of 16 consecutive frames is randomly chosen. The sequence is looped as necessary to obtain 16 frames clip. To support training with a large number of video clips per batch, the model's input size is set to 160x160. All frames are first re-sized to 256x192. The width and height are then independently picked from [128, 144, 160, 176, 192] and a region is cropped either at one of the corners of the image or at its center. The crop is then re-sized to 160x160. The aspect ratio thus randomly varies from 2/3 to 3/2. At test time, the first 16 frames of the video are selected, then resized to 256x192 and a center crop of 160x160 is extracted.
+* **Video Preparation:** During training, each video is randomly down-sampled along the temporal dimension and a set of 16 consecutive frames is randomly chosen. The sequence is looped as necessary to obtain 16 frames clip. To support training with a large number of video clips per batch, the model's input size is set to 160x160. All frames are first re-sized to 256x192. The width and height are then independently picked from [128, 144, 160, 176, 192] and a region is cropped either at one of the corners of the image or at its center. The crop is then re-sized to 160x160. The aspect ratio thus randomly varies from 2/3 to 3/2. At test time, the first 16 frames of the video are selected, then resized to 256x192 and a center crop of 160x160 is extracted for all frames.
 
 * **Hardware:** All experiments were done on a single Titan RTX with 24GB of RAM. For smaller configurations, consider reducing the input frames to 112x112 and/or applying a temporal stride of 2 on the first 3D convolution instead of the max pooling layer.
 
@@ -52,22 +51,24 @@ I have used the full arsenal of augmentation techniques to reduce over-fitting a
 
 This section reports test results for the following experiments:
  * MiCT-ResNet-18 versus 3D-ResNet-18
- * MiCT-ResNet-18 with varying kernel sizes for the first 3D convolution
+ * MiCT-ResNet-18 with varying kernel sizes for the first 3D convolution: 3x7x7x, 5x7x7, and 7x7x7
  
-The models are evaluated against the **top1** and **top5** accuracies. All results are averaged across the 3 standard splits. **MiCT-ResNet-18 leads by 1.4 point while being 3.1 times faster** which confirms the validity of the approach of the authors. It remains to be seen what happens if MiCT-ResNet-18 was pre-trained on both ImageNet & Kinetics. Let me know if you have access to this dataset and are willing to contribute !
+The models are evaluated against the **top1** and **top5** accuracies. All results are averaged across the 3 standard splits. **MiCT-ResNet-18 leads by 1.4 point while being 3.1 times faster** which confirms the validity of the approach of the authors. The memory size is given for the processing of one video clip of 16 frames at a time (ie. batch size of one).
 
 |                                                         | Parameters  | Top1 / Top5     | Memory size |     FPS     |
 |---------------------------------------------------------|-------------|-----------------|-------------|-------------|
 | [MiCT-ResNet-18](results/MiCT-ResNet-18-7x7x7.jpg)      | 16.1M       | **63.2** / 83.7 | 985 MB      | **1981**    |
 | [3D-ResNet-18](results/3D-ResNet-18.jpg)                | 33.3M       | 61.8 / 83.3     | 1045 MB     | 644         |
 
-
+As shown below, the size of the first 3D kernel has a significant impact on the efficiency of the MiCT-ResNet architecture. Harvesting 7 consecutive RGB input frames provides the best accuracy but impacts inference speed.
 
 | First 3D kernel size    | Parameters  | Top1 / Top5     | Memory size |     FPS     |
 |-------------------------|-------------|-----------------|-------------|-------------|
 | 3x7x7                   | 16.01M      | 61.4 / 83.3     | 983 MB      | 2380        |
 | 5x7x7                   | 16.03M      | 62.7 / 83.4     | 985 MB      | 2147        |
 | 7x7x7                   | 16.05M      | **63.2** / 83.7 | 985 MB      | 1981        |
+
+It remains to be seen how MiCT-ResNet-18 and 3D-ResNet-18 compare if they were both pre-trained on ImageNet & Kinetics. Let me know if you have access to the Kinetics data set and are willing to contribute!
 
 
 ## Training on Your Own
