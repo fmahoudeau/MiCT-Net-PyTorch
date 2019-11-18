@@ -6,7 +6,7 @@ This repository includes:
 
 * Source code of MiCT-Net built on the ResNet backbone, and named MiCT-ResNet throughout the rest of this repository
 
-* Source code for 3D-ResNet adapted from [kenshohara](https://github.com/kenshohara/3D-ResNets-PyTorch) and used for performance comparison
+* Source code for 3D-ResNet adapted from [Kensho Hara](https://github.com/kenshohara/3D-ResNets-PyTorch) and used for performance comparison
 
 * Code to prepare the UCF-101 dataset
 
