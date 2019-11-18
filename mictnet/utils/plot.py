@@ -17,6 +17,7 @@
 import matplotlib.pyplot as plt
 
 
+# Learning curve
 train_loss, train_top1 = [], []
 val_loss, val_top1 = [], []
 with open('/home/fanos/PycharmProjects/MiCTNet/3dresnet.txt', 'r') as f:
@@ -47,3 +48,15 @@ ax2.set_ylabel('Top1 Accuracy')
 ax1.legend(loc="lower center")
 ax2.legend(loc="center")
 plt.savefig('3D-ResNet-18.jpg');
+
+# Top-1 accuracy as a function of input sequence length
+acc=np.array([[63.9,63.3,60.5],
+              [65.5,65.5,62],
+              [67.5,67,64],
+              [68.6,68.2,65.3],
+              [68.9,69.2,65.7]]).mean(axis=1)
+plt.figure(); plt.plot([16, 35, 75, 150, 300], acc);
+plt.xticks([16, 35, 75, 150, 300], ['16', '35', '75', '150', '300'])
+plt.xlabel('Number of video clip frames')
+plt.ylabel('Top-1 accuracy')
+plt.title('MiCT-ResNet-18')
