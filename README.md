@@ -75,6 +75,8 @@ In the last experiment I've replaced the global average pooling layer by a combi
 
 It remains to be seen how MiCT-ResNet-18 and 3D-ResNet-18 compare if they were both pre-trained on ImageNet & Kinetics. Let me know if you have access to the Kinetics data set and are willing to contribute!
 
+\centerline{\includegraphics[height=2in]{results/MiCT-ResNet-18_Top-1_Acc.jpg}}
+
 
 ## Training on Your Own
 You can train, evaluate and predict directly from the command line as such:
