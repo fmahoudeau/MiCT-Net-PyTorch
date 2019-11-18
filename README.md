@@ -22,7 +22,7 @@ There are many differences with the paper since the backbones are not the same. 
  
 ![MiCT-ResNet Architecture](assets/MiCT-ResNet-18-V2.jpg)
 
-As shown above, I have opted for the introduction of five 3D convolutions, one at the entrance of the network and one at the beginning of each of the four main ResNet blocks. After each 3D convolution, we merge features of the two branches with a cross domain element-wise summation. This operation can speed up learning and allow training of deeper architectures. It also allows the 3D convolution branch to only learn residual temporal features, which are the motion of objects and persons in videos, to complement features learned by 2D convolutions.
+As shown above, I have opted for the introduction of five 3D convolutions, one at the entrance of the network and one at the beginning of each of the four main ResNet blocks. After each 3D convolution, we merge features of the two branches with a cross domain element-wise summation. This operation can speed up learning and allow training of deeper architectures. It also allows the 3D convolution branch to only learn residual temporal features, which are the motion of objects and persons in videos, to complement the spatial features learned by 2D convolutions.
 
 
 ## UCF-101 Dataset
