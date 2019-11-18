@@ -71,7 +71,7 @@ As shown below, the size of the first 3D kernel has a significant impact on the 
 
 In the last experiment I've replaced the global average pooling layer by a combination of an average pooling layer along spatial dimensions followed by a max pooling layer along the temporal dimension. This enables the network to accept video sequences of any length. The temporal stride is reduced from 16 to 4, and the batch size is reduced to 96. The best result of **67.9** is achieved for sequences of 300 frames.
 
-![Top-1 accuracy as a function of clip length](results/MiCT-ResNet-18_Top-1_Acc.jpg)
+![Top-1 accuracy as a function of clip length](results/MiCT-ResNet-18_Top-1_Acc_Wide.jpg)
 
 It remains to be seen how MiCT-ResNet-18 and 3D-ResNet-18 compare if they were both pre-trained on ImageNet & Kinetics. Let me know if you have access to the Kinetics data set and are willing to contribute!
 
