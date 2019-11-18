@@ -1,6 +1,6 @@
 # MiCT-Net for Video Classification
 
-This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from a list of 101 classes. It achieves **63.2 top-1 accuracy** on the UCF-101 dataset when tested with video clips of 16 frames. It is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
+This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from a list of 101 classes. It achieves **67.9 top-1 accuracy** on the UCF-101 dataset when tested with video clips of 300 frames. It is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
 
 This repository includes:
 
@@ -27,12 +27,12 @@ As shown above, I have opted for the introduction of five 3D convolutions, one a
 
 ## UCF-101 Dataset
 
-[UCF-101](https://www.crcv.ucf.edu/data/UCF101.php) is an action recognition data set of realistic action videos, collected from YouTube, having 101 action categories. It has served the Deep Learning community well for many years and continues to be used. One thing to know when analysing the results below, is that despite its 13320 videos and 100+ clips for each of the 101 action categories, it is actually a relatively small data set for the task because of its low variability. This results in strong over-fitting on most recent architectures which makes their comparison difficult. All the clips are taken from only 2.5k distinct videos. For example there can be 7 clips from one video of a person playing piano. This means that there is far less variation than if the action in each clip was performed by a different person. Example frames of some of the human actions in UCF-101 are shown below.
+[UCF-101](https://www.crcv.ucf.edu/data/UCF101.php) is an action recognition data set of realistic action videos, collected from YouTube, having 101 action categories. It has served the Deep Learning community well for many years and continues to be used. All videos are 320x240 in size at 25 frames per second. One thing to know when analysing the results below, is that despite its 13320 videos and 100+ clips for each of the 101 action categories, it is actually a relatively small data set for the task because of its low variability. This results in strong over-fitting on architectures with many parameters such as those with 3D convolutions, and makes their comparison difficult. All the clips are taken from only 2.5k distinct videos. For example there can be 7 clips from one video of a person playing piano. This means that there is far less variation than if the action in each clip was performed by a different person. Example frames of some of the human actions in UCF-101 are shown below.
 
 ![UCF101 action examples](assets/UCF101.jpg)
 
 
-## Training and Test Details
+## Implementation Details
 
 To facilitate results comparison and unless otherwise stated, the procedure described below applies to both MiCT-ResNet and 3D-ResNet. 
 
@@ -52,6 +52,7 @@ To facilitate results comparison and unless otherwise stated, the procedure desc
 This section reports test results for the following experiments:
  * MiCT-ResNet-18 versus 3D-ResNet-18
  * MiCT-ResNet-18 with varying kernel sizes for the first 3D convolution: 3x7x7x, 5x7x7, and 7x7x7
+ * MiCT-ResNet-18 modified to accept input video sequences of arbitrary length
  
 The models are evaluated against the **top1** and **top5** accuracies. All results are averaged across the 3 standard splits. **MiCT-ResNet-18 leads by 1.4 point while being 3.1 times faster** which confirms the validity of the approach of the authors. The memory size is given for the processing of one video clip of 16 frames at a time (ie. batch size of one).
 
@@ -67,6 +68,10 @@ As shown below, the size of the first 3D kernel has a significant impact on the 
 | 3x7x7                   | 16.01M      | 61.4 / 83.3     | 983 MB      | 2380        |
 | 5x7x7                   | 16.03M      | 62.7 / 83.4     | 985 MB      | 2147        |
 | 7x7x7                   | 16.05M      | **63.2** / 83.7 | 985 MB      | 1981        |
+
+In the last experiment I've replaced the global average pooling layer by a combination of an average pooling layer along spatial dimensions followed by a max pooling layer along the temporal dimension. This enables the network to accept video sequences of any length. The temporal stride is reduced from 16 to 4, and the batch size is reduced to 96. The best result of **67.9** is achieved for sequences of 300 frames.
+
+![Top-1 accuracy as a function of clip length](results/MiCT-ResNet-18_Top-1_Acc.jpg)
 
 It remains to be seen how MiCT-ResNet-18 and 3D-ResNet-18 compare if they were both pre-trained on ImageNet & Kinetics. Let me know if you have access to the Kinetics data set and are willing to contribute!
 
