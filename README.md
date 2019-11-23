@@ -1,6 +1,6 @@
 # MiCT-Net for Video Recognition
 
-This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from a list of 101 classes. It achieves **67.9 top-1 accuracy** on the UCF-101 dataset when tested with video clips of 300 frames. It is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
+This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from a list of 101 classes. It achieves **67.9 top-1 accuracy** on the UCF-101 dataset with a ResNet-18 backbone tested with video clips of 300 frames. It is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
 
 This repository includes:
 
