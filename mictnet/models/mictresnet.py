@@ -310,10 +310,17 @@ def get_mictresnet(backbone, version, dropout=0.5, n_classes=101, pretrained=Fal
     Constructs a MiCT-Net model with a ResNet backbone.
 
     :param backbone: the ResNet backbone, either `resnet18` or `resnet34`.
+    :param version: controls the temporal stride, either 'v1' for stride 16
+        or 'v2' for stride 4. A smaller stride increases performance but
+        consumes more operations and memory.
+    :param dropout: the dropout rate applied before the FC layer.
     :param n_classes: the number of human action classes in the dataset.
         Defaults to 101 for UCF-101.
     :param pretrained: If True, returns a model pre-trained on ImageNet.
     """
+    if version not in ('v1', 'v2'):
+        raise RuntimeError('Unknown version: {}'.format(version))
+
     if backbone == 'resnet18':
         model = MiCTResNet(BasicBlock, [2, 2, 2, 2], dropout, version, n_classes, **kwargs)
         if pretrained:
