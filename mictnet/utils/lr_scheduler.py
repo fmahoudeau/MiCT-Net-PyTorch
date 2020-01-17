@@ -10,6 +10,7 @@
 
 import math
 
+
 class LRScheduler(object):
     """Learning Rate Scheduler
     Step mode: ``lr = baselr * 0.1 ^ {floor(epoch-1 / lr_step)}``
@@ -21,10 +22,11 @@ class LRScheduler(object):
           :attr:`args.lr_step`
         iters_per_epoch: number of iterations per epoch
     """
-    def __init__(self, mode, base_lr, num_epochs, iters_per_epoch=0,
+    def __init__(self, logger, mode, base_lr, num_epochs, iters_per_epoch=0,
                  lr_step=0, warmup_epochs=0):
+        self.logger = logger
         self.mode = mode
-        print('Using {} LR Scheduler!'.format(self.mode))
+        self.logger.info('Using {} LR scheduler'.format(self.mode))
         self.lr = base_lr
         if mode == 'step':
             assert lr_step
@@ -48,8 +50,9 @@ class LRScheduler(object):
         if self.warmup_iters > 0 and T < self.warmup_iters:
             lr = lr * 1.0 * T / self.warmup_iters
         if epoch > self.epoch:
-            print('\n=>Epoches %i, learning rate = %.6f, \
-                previous best = %.6f' % (epoch, lr, best_pred))
+            self.logger.info('\n=>Epoches %i, learning rate = %.5f, \
+                previous best = %.5f' % (epoch, lr, best_pred))
+            print('\n=>Epoches %i, learning rate = %.5f, previous best = %.5f' % (epoch, lr, best_pred))
             self.epoch = epoch
         assert lr >= 0
         self._adjust_learning_rate(optimizer, lr)

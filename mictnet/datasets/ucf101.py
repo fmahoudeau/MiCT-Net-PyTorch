@@ -1,7 +1,18 @@
-###########################################################################
-# Created by: Florent Mahoudeau
-# Copyright (c) 2019
-###########################################################################
+# ==============================================================================
+# Copyright 2019 Florent Mahoudeau. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
 
 import os
 import io
@@ -17,10 +28,7 @@ from torchvision.transforms import ToTensor
 
 __all__ = ['UCF101Classification']
 
-"""
-Loads the UCF101 dataset and prepares it for train, val and test phases.
-For reference the mean and std are respectively [0.397, 0.383, 0.351] and [0.126, 0.124, 0.133].
-"""
+"""Loads the UCF101 dataset and prepares it for train, val and test phases."""
 
 
 class UCF101Classification:
@@ -48,8 +56,8 @@ class UCF101Classification:
     ]
     N_CLASSES = 101
 
-    def __init__(self, root='/media/fanos/Data1/Datasets/ucf101',
-                 mode=None, transform=None, base_size=256, crop_size=224, crop_vid=16,
+    def __init__(self, logger, root, mode=None, transform=None,
+                 base_size=256, crop_size=224, crop_vid=16,
                  split=1, pre_load=False, verify=False, **kwargs):
         self.totensor = ToTensor()
         self.mode = mode
@@ -63,10 +71,10 @@ class UCF101Classification:
         image_dir = os.path.join(root, 'images')
         splits_dir = image_dir  # train/val splits are pre-cut
         if self.mode == 'train':
-            print('Loading UCF101 ' + ('train%d.csv' % self.split))
+            logger.info('Loading UCF101 ' + ('train%d.csv' % self.split))
             split_f = os.path.join(splits_dir, 'train%d.csv' % self.split)
         elif self.mode == 'val':
-            print('Loading UCF101 ' + ('val%d.csv' % self.split))
+            logger.info('Loading UCF101 ' + ('val%d.csv' % self.split))
             split_f = os.path.join(splits_dir, 'val%d.csv' % self.split)
         else:
             raise RuntimeError('Unknown dataset split')

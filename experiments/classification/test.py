@@ -15,6 +15,7 @@
 # ==============================================================================
 
 import os
+import logging
 from tqdm import tqdm
 import torch
 from torch.utils import data
@@ -30,8 +31,10 @@ from mictnet import utils
 
 
 def test(args):
+    logger, console, output_dir = utils.file.create_logger(args, 'val')
+
     device = 'cuda:{}'.format(args.gpu_id) if torch.cuda.is_available() else 'cpu'
-    print('Compute device: ' + device)
+    logger.info('Compute device: ' + device)
     device = torch.device(device)
 
     # data transforms
@@ -40,9 +43,10 @@ def test(args):
         transform.Normalize([.485, .456, .406], [.229, .224, .225])])
 
     # dataset
-    data_kwargs = {'transform': input_transform, 'base_size': args.base_size,
-                   'crop_size': args.crop_size, 'crop_vid': args.crop_vid,
-                   'split': args.split, 'root': args.data_folder}
+    data_kwargs = {'logger': logger, 'transform': input_transform,
+                   'base_size': args.base_size, 'crop_size': args.crop_size,
+                   'crop_vid': args.crop_vid, 'split': args.split,
+                   'root': args.data_folder}
     testset = get_classification_dataset(args.dataset, mode='val', **data_kwargs)
 
     # dataloader
@@ -52,19 +56,24 @@ def test(args):
                                  drop_last=False, shuffle=False, **loader_kwargs)
 
     # model
-    model = get_classification_model(args.model)
+    model_kwargs = {'backbone': args.backbone, 'version': args.version} \
+        if args.model == 'mictresnet' else {}
+    model = get_classification_model(args.model, **model_kwargs)
 
     # resuming checkpoint
     if args.resume is None or not os.path.isfile(args.resume):
         raise RuntimeError("=> no checkpoint found at '{}'" .format(args.resume))
     checkpoint = torch.load(args.resume)
     model.load_state_dict(checkpoint['state_dict'])
-    print("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
-    #print(model)
+    logger.info("=> loaded checkpoint '{}' (epoch {})".format(args.resume,
+                                                              checkpoint['epoch']))
 
     # count parameter number
     pytorch_total_params = sum(p.numel() for p in model.parameters())
-    print("Total number of parameters: %d" % pytorch_total_params)
+    logger.info("Total number of parameters: %d" % pytorch_total_params)
+
+    # don't output to stdout anymore when logging
+    logging.getLogger('').removeHandler(console)
 
     # validation
     model.to(device)
@@ -83,6 +92,8 @@ def test(args):
             top5.update(acc5[0], args.batch_size)
         tbar.set_description(
             'acc1: %.3f, acc5: %.3f' % (top1.avg, top5.avg))
+
+    logger.info('acc1: %.3f, acc5: %.3f' % (top1.avg, top5.avg))
 
 
 if __name__ == "__main__":

@@ -31,7 +31,9 @@ def test_speed(args):
     device = torch.device(device)
 
     # model
-    model = get_classification_model(args.model)
+    model_kwargs = {'backbone': args.backbone, 'version': args.version} \
+        if args.model == 'mictresnet' else {}
+    model = get_classification_model(args.model, **model_kwargs)
 
     # count parameter number
     pytorch_total_params = sum(p.numel() for p in model.parameters())
@@ -42,8 +44,8 @@ def test_speed(args):
 
     run_time = list()
 
-    for i in range(0, 10000):
-        input = torch.randn(1, 3, 16, 160, 160).cuda()
+    for i in range(0, 1000):
+        input = torch.randn(1, 3, 16, 160, 160).to(device)
         # ensure that context initialization and normal_() operations
         # finish before you start measuring time
         torch.cuda.synchronize()
