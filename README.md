@@ -81,9 +81,10 @@ You can train, evaluate and predict directly from the command line as such:
 
 ```
 # Training a new MiCT-ResNet-18 model starting from pre-trained ImageNet weights
-python train.py --model mictresnet --lr 1e-2 --weight-decay 5e-4 --batch-size 128 
-                --base-size 192 --crop-size 160 --split 1 --checkname mictresnet_v1 
-                --crop-vid 16 --epochs 120 --pretrained --lr-scheduler step --lr-step 80
+python train.py --model mictresnet --version v1 --backbone resnet18 --lr 1e-2 --weight-decay 5e-4
+                --dropout 0.5 --batch-size 112 --base-size 192 --crop-size 160 --split 1 
+                --checkname MiCTResNet_V1 --crop-vid 16 --epochs 120 --pretrained 
+                --lr-scheduler step --lr-step 80
 ```
 
 You can also evaluate the model with:
@@ -96,7 +97,7 @@ python test.py --model 3dresnet --test-batch-size 1 --base-size 192 --crop-size 
 You can also test the inference speed on your hardware using this command:
 ```
 # Test the inference speed
-python test_speed.py --model mictresnet
+python test_speed.py --model mictresnet --version v1 --backbone resnet18
 ```
 
 To prepare the dataset once download is complete run:
@@ -108,14 +109,14 @@ python prepare_ucf101.py --download-dir /path/to/your/downloaded/tar
 
 
 ## Requirements
-Python 3.7, Torch 1.0 or greater, and tqdm.
+Python 3.7, Torch 1.3 or greater, and tqdm.
 
 
 ## Citation
 Use this bibtex to cite this repository:
 ```
 @misc{fmahoudeau_mict_net_2019,
-  title={Mixed Convolutional Tube (MiCT-Net) for video classification in PyTorch},
+  title={Mixed Convolutional Tube (MiCT) with ResNets for video classification in PyTorch},
   author={Florent Mahoudeau},
   year={2019},
   publisher={GitHub},
