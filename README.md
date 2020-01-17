@@ -54,11 +54,11 @@ This section reports test results for the following experiments:
  * MiCT-ResNet-18 with varying kernel sizes for the first 3D convolution: 3x7x7, 5x7x7, and 7x7x7
  * MiCT-ResNet-18 and Mict-ResNet-34 trained on 16 frames clip with a temporal stride of 4, and tested on varying sequences length 
  
-The models are evaluated against the **top1** and **top5** accuracies. All results are averaged across the 3 standard splits. **MiCT-ResNet-18 leads by 1.4 point while being 3.1 times faster** which confirms the validity of the approach of the authors. The memory size is given for the processing of one video clip of 16 frames at a time (ie. batch size of one).
+The models are evaluated against the **top1** and **top5** accuracies. All results are averaged across the 3 standard splits. **MiCT-ResNet-18 leads by 1.5 point while being 3.1 times faster** which confirms the validity of the approach of the authors. The memory size is given for the processing of one video clip of 16 frames at a time (ie. batch size of one).
 
 |                                                         | Parameters  | Top1 / Top5     | Memory size |     FPS     |
 |---------------------------------------------------------|-------------|-----------------|-------------|-------------|
-| [MiCT-ResNet-18](results/MiCT-ResNet-18-7x7x7.jpg)      | 16.1M       | **63.2** / 83.7 | 985 MB      | **1981**    |
+| [MiCT-ResNet-18](results/MiCT-ResNet-18-7x7x7.jpg)      | 16.1M       | **63.3** / 83.8 | 985 MB      | **1981**    |
 | [3D-ResNet-18](results/3D-ResNet-18.jpg)                | 33.3M       | 61.8 / 83.3     | 1045 MB     | 644         |
 
 As shown below, the size of the first 3D kernel has a significant impact on the efficiency of the MiCT-ResNet architecture. Harvesting 7 consecutive RGB input frames provides the best accuracy but impacts inference speed.
@@ -67,7 +67,7 @@ As shown below, the size of the first 3D kernel has a significant impact on the 
 |-------------------------|-------------|-----------------|-------------|-------------|
 | 3x7x7                   | 16.01M      | 61.4 / 83.3     | 983 MB      | 2380        |
 | 5x7x7                   | 16.03M      | 62.7 / 83.4     | 985 MB      | 2147        |
-| 7x7x7                   | 16.05M      | **63.2** / 83.7 | 985 MB      | 1981        |
+| 7x7x7                   | 16.05M      | **63.3** / 83.8 | 985 MB      | 1981        |
 
 In the last experiment the temporal stride is reduced from 16 to 4. The best result of **69.3** for MiCT-ResNet-18 and **72.8** for MiCT-ResNet-34 are achieved for sequences of 300 frames. The only modified parameters are the batch size (96 and 80 respectively) and dropout (60 and 70 respectively).
 
