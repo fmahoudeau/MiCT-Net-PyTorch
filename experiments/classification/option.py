@@ -22,9 +22,12 @@ import torch
 class Options:
     def __init__(self):
         parser = argparse.ArgumentParser(description='PyTorch Video Classification')
+
         # model and dataset
         parser.add_argument('--model', type=str, default='mictresnet',
                             help='model name (default: mictresnet)')
+        parser.add_argument('--version', type=str, default='v1',
+                            help='model variant (default: v1)')
         parser.add_argument('--backbone', type=str, default='resnet18',
                             help='backbone name (default: resnet18)')
         parser.add_argument('--dataset', type=str, default='ucf101',
@@ -55,12 +58,14 @@ class Options:
         parser.add_argument('--test-batch-size', type=int, default=None,
                             metavar='N', help='input batch size for \
                             testing (default: same as batch size)')
+        parser.add_argument('--dropout', type=float, default=0.5,
+                            help='dropout during training (default: 0.5)')
         # optimizer params
         parser.add_argument('--lr', type=float, default=None, metavar='LR',
                             help='learning rate (default: auto)')
         parser.add_argument('--lr-scheduler', type=str, default='poly',
                             help='learning rate scheduler (default: poly)')
-        parser.add_argument('--lr-step', type=int, default=35,
+        parser.add_argument('--lr-step', type=int, default=50,
                             help='steps to decay learning rate by 0.1')
         parser.add_argument('--momentum', type=float, default=0.9,
                             metavar='M', help='momentum (default: 0.9)')
@@ -76,7 +81,7 @@ class Options:
         # checking point
         parser.add_argument('--resume', type=str, default='',
                             help='put the path to resuming file if needed')
-        parser.add_argument('--checkname', type=str, default='mictresnet',
+        parser.add_argument('--checkname', type=str, default='MictResNet',
                             help='set the checkpoint name')
         parser.add_argument('--model-zoo', type=str, default=None,
                             help='evaluating on model zoo model')

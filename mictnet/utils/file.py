@@ -1,4 +1,6 @@
 import os
+import time
+import logging
 import errno
 import shutil
 import hashlib
@@ -10,7 +12,7 @@ __all__ = ['save_checkpoint', 'download', 'mkdir', 'check_sha1']
 
 def save_checkpoint(state, args, is_best, filename='checkpoint.pth.tar'):
     """Saves checkpoint to disk"""
-    directory = "runs/%s/%s/%s/"%(args.dataset, args.model, args.checkname)
+    directory = "output/%s/%s/%s/" % (args.dataset, args.model, args.checkname)
     if not os.path.exists(directory):
         os.makedirs(directory)
     filename = directory + filename
@@ -111,3 +113,22 @@ def mkdir(path):
             pass
         else:
             raise
+
+
+def create_logger(args, phase='train'):
+    output_dir = "output/%s/%s/%s/" % (args.dataset, args.model, args.checkname)
+    print('=> creating {}'.format(output_dir))
+    mkdir(output_dir)
+
+    time_str = time.strftime('%Y-%m-%d-%H-%M')
+    log_file = '{}_{}_{}.log'.format(args.checkname, time_str, phase)
+    final_log_file = os.path.join(output_dir, log_file)
+    head = '%(asctime)-15s %(message)s'
+    logging.basicConfig(filename=str(final_log_file),
+                        format=head)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    console = logging.StreamHandler()
+    logging.getLogger('').addHandler(console)
+
+    return logger, console, output_dir

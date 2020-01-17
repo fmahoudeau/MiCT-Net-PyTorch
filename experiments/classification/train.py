@@ -15,6 +15,10 @@
 # ==============================================================================
 
 import os
+import shutil
+import logging
+import pprint
+
 from tqdm import tqdm
 from torch.nn import Parameter
 import torch
@@ -22,17 +26,26 @@ from torch import nn
 from torch.utils import data
 import torchvision.transforms as transform
 from option import Options
-from mictnet.models import get_classification_model
-from mictnet.datasets import get_classification_dataset
-from mictnet import utils
 
 import sys
 sys.path.insert(0, '../../')
+
+from mictnet.models import get_classification_model
+from mictnet.datasets import get_classification_dataset
+from mictnet import utils
 
 
 class Trainer:
     def __init__(self, args):
         self.args = args
+        self.logger, self.console, self.output_dir = utils.file.create_logger(args, 'train')
+        self.logger.info(pprint.pformat(args))
+
+        # copy model file
+        this_dir = os.path.dirname(__file__)
+        shutil.copy2(
+            os.path.join(this_dir, '../../mictnet/models', args.model + '.py'),
+            self.output_dir)
 
         device = 'cuda:{}'.format(args.gpu_id) if torch.cuda.is_available() else 'cpu'
         print('Compute device: ' + device)
@@ -44,9 +57,10 @@ class Trainer:
             transform.Normalize([.485, .456, .406], [.229, .224, .225])])
 
         # dataset
-        data_kwargs = {'transform': input_transform, 'base_size': args.base_size,
-                       'crop_size': args.crop_size, 'crop_vid': args.crop_vid,
-                       'split': args.split, 'root': args.data_folder}
+        data_kwargs = {'logger': self.logger, 'transform': input_transform,
+                       'base_size': args.base_size, 'crop_size': args.crop_size,
+                       'crop_vid': args.crop_vid, 'split': args.split,
+                       'root': args.data_folder}
         trainset = get_classification_dataset(args.dataset, mode='train', **data_kwargs)
         testset = get_classification_dataset(args.dataset, mode='val', **data_kwargs)
 
@@ -59,12 +73,16 @@ class Trainer:
                                          drop_last=False, shuffle=False, **kwargs)
         self.n_classes = trainset.n_classes
         # model
-        self.model = get_classification_model(args.model, pretrained=args.pretrained)
-        print(self.model)
+        model_kwargs = {'backbone': args.backbone, 'dropout': args.dropout,
+                        'version': args.version} \
+            if args.model == 'mictresnet' else {}
+        self.model = get_classification_model(args.model, pretrained=args.pretrained,
+                                              **model_kwargs)
+        #self.logger.info(pprint.pformat(self.model))
 
         # count parameter number
-        pytorch_total_params = sum(p.numel() for p in self.model.parameters())
-        print("Total number of parameters: %d" % pytorch_total_params)
+        total_params = sum(p.numel() for p in self.model.parameters())
+        self.logger.info("Total number of parameters: %d" % total_params)
 
         # optimizer
         params_list = [{'params': self.model.parameters(), 'lr': args.lr}, ]
@@ -104,8 +122,8 @@ class Trainer:
             if not args.ft:
                 self.optimizer.load_state_dict(checkpoint['optimizer'])
             self.best_pred = checkpoint['best_pred']
-            print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(args.resume, checkpoint['epoch']))
+            self.logger.info("=> loaded checkpoint '{}' (epoch {})"
+                             .format(args.resume, checkpoint['epoch']))
 
         # clear start epoch if fine-tuning
         if args.ft:
@@ -113,9 +131,12 @@ class Trainer:
             self.best_pred = 0.0
 
         # lr scheduler
-        self.scheduler = utils.LRScheduler(args.lr_scheduler, args.lr,
+        self.scheduler = utils.LRScheduler(self.logger, args.lr_scheduler, args.lr,
                                            args.epochs, len(self.trainloader),
                                            lr_step=args.lr_step)
+
+        # don't output to stdout anymore when logging
+        logging.getLogger('').removeHandler(self.console)
 
     def training(self, epoch):
         train_loss = 0.0
@@ -123,6 +144,7 @@ class Trainer:
         top1 = utils.AverageMeter('acc@1', ':6.2f')
         top5 = utils.AverageMeter('acc@5', ':6.2f')
         tbar = tqdm(self.trainloader)
+
         for i, (video, target) in enumerate(tbar):
             video = video.to(self.device)
             target = target.to(self.device)
@@ -140,6 +162,9 @@ class Trainer:
             tbar.set_description(
                 'train_loss: %.3f, acc1: %.3f, acc5: %.3f' %
                 (train_loss / (i + 1), top1.avg, top5.avg))
+
+        self.logger.info('train_loss: %.3f, acc1: %.3f, acc5: %.3f' %
+                         (train_loss / len(self.trainloader), top1.avg, top5.avg))
 
         if self.args.no_val:
             # save checkpoint every epoch
@@ -172,6 +197,9 @@ class Trainer:
                 'val_loss:   %.3f, acc1: %.3f, acc5: %.3f' %
                 (val_loss / (i + 1), top1.avg, top5.avg))
 
+        self.logger.info('val_loss:   %.3f, acc1: %.3f, acc5: %.3f' %
+                         (val_loss / len(self.valloader), top1.avg, top5.avg))
+
         new_pred = (top1.avg + top5.avg) / 2
         if new_pred > self.best_pred:
             is_best = True
@@ -188,8 +216,7 @@ if __name__ == "__main__":
     args = Options().parse()
     torch.manual_seed(args.seed)
     trainer = Trainer(args)
-    print('Starting Epoch:', args.start_epoch)
-    print('Total Epoches:', args.epochs)
+
     for epoch in range(args.start_epoch, args.epochs):
         trainer.training(epoch)
         if not args.no_val:

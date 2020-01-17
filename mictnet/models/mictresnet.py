@@ -20,6 +20,8 @@
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
+from torch.nn import functional as F
+
 
 __all__ = ['MiCTResNet', 'MiCTBlock', 'get_mictresnet']
 
@@ -142,35 +144,48 @@ class MiCTResNet(nn.Module):
     and W. Zeng: MiCT: Mixed 3D/2D Convolutional Tube for Human Action
     Recognition.
     """
-    def __init__(self, block, layers, n_classes, **kwargs):
+
+    def __init__(self, block, layers, dropout, version, n_classes, **kwargs):
         """
         :param block: the block class, either BasicBlock or Bottleneck.
         :param layers: the number of blocks for each for each of the
             four feature depth.
+        :param dropout: dropout rate applied during training.
         :param n_classes: the number of classes in the dataset.
         """
         super(MiCTResNet, self).__init__(**kwargs)
 
         self.inplanes = 64
+        self.dropout = dropout
+        self.version = version
+        self.t_strides = {'v1': [1, 1, 2, 2, 2], 'v2': [1, 1, 1, 2, 1]}[self.version]
         self.n_classes = n_classes
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=(7, 7), stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=(7, 7),
+                               stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
-        self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.maxpool1 = nn.MaxPool2d(kernel_size=3,
+                                     stride=2, padding=1)
 
-        self.conv2 = nn.Conv3d(3, 64, kernel_size=(7, 7, 7), stride=(1, 2, 2),
-                               padding=(3, 3, 3), bias=False)
+        self.conv2 = nn.Conv3d(3, 64, kernel_size=(7, 7, 7),
+                               stride=(self.t_strides[0], 2, 2),
+                               padding=0, bias=False)
         self.bn2 = nn.BatchNorm3d(64)
         self.maxpool2 = nn.MaxPool3d(kernel_size=3, stride=2, padding=1)
         self.relu = nn.ReLU(inplace=True)
 
-        self.layer1 = MiCTBlock(block, self.inplanes, 64, layers[0], stride=(1, 1))
-        self.layer2 = MiCTBlock(block, self.layer1.inplanes, 128, layers[1], stride=(2, 2))
-        self.layer3 = MiCTBlock(block, self.layer2.inplanes, 256, layers[2], stride=(2, 2))
-        self.layer4 = MiCTBlock(block, self.layer3.inplanes, 512, layers[3], stride=(2, 2))
+        self.layer1 = MiCTBlock(block, self.inplanes, 64, layers[0],
+                                stride=(self.t_strides[1], 1))
+        self.layer2 = MiCTBlock(block, self.layer1.inplanes, 128, layers[1],
+                                stride=(self.t_strides[2], 2))
+        self.layer3 = MiCTBlock(block, self.layer2.inplanes, 256, layers[2],
+                                stride=(self.t_strides[3], 2))
+        self.layer4 = MiCTBlock(block, self.layer3.inplanes, 512, layers[3],
+                                stride=(self.t_strides[4], 2))
 
-        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
-        self.drop = nn.Dropout3d(0.5)
+        self.avgpool1 = nn.AdaptiveAvgPool3d((None, 1, 1))
+        self.avgpool2 = nn.AdaptiveAvgPool1d(1)
+        self.drop = nn.Dropout3d(self.dropout)
         self.fc = nn.Linear(512 * block.expansion, self.n_classes)
 
         for m in self.modules():
@@ -200,8 +215,8 @@ class MiCTResNet(nn.Module):
                          '.data.copy_(state_dict[\'' + key + '\'])')
 
     def forward(self, x):
-        n = x.size(0)
-        out1 = self.conv2(x)
+        out1 = F.pad(x, (3, 3, 3, 3, 0, 6), 'constant', 0)
+        out1 = self.conv2(out1)
         out1 = self.bn2(out1)
         out1 = self.relu(out1)
         out1 = self.maxpool2(out1)
@@ -219,10 +234,14 @@ class MiCTResNet(nn.Module):
         out = self.layer3(out)
         out = self.layer4(out)
 
-        out = self.avgpool(out)
         out = self.drop(out)
-        out = out.view(n, -1)
-        out = self.fc(out)
+        out = self.avgpool1(out)
+        out = out.squeeze(4).squeeze(3)
+        out_fc = []
+        for i in range(out.size()[-1]):
+            out_fc.append(self.fc(out[:, :, i]).unsqueeze(2))
+        out_fc = torch.cat(out_fc, 2)
+        out = self.avgpool2(out_fc).squeeze(2)
 
         return out
 
@@ -263,12 +282,13 @@ class MiCTBlock(nn.Module):
 
         self.conv = nn.Conv3d(inplanes, planes, kernel_size=3,
                               stride=(self.stride[0], self.stride[1], self.stride[1]),
-                              padding=1, bias=False)
+                              padding=0, bias=False)
         self.bn = nn.BatchNorm3d(planes)
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        out1 = self.conv(x)
+        out1 = F.pad(x, (1, 1, 1, 1, 0, 2), 'constant', 0)
+        out1 = self.conv(out1)
         out1 = self.bn(out1)
         out1 = self.relu(out1)
 
@@ -285,7 +305,7 @@ class MiCTBlock(nn.Module):
         return out
 
 
-def get_mictresnet(backbone='resnet18', n_classes=101, pretrained=False, **kwargs):
+def get_mictresnet(backbone, version, dropout=0.5, n_classes=101, pretrained=False, **kwargs):
     """
     Constructs a MiCT-Net model with a ResNet backbone.
 
@@ -295,11 +315,11 @@ def get_mictresnet(backbone='resnet18', n_classes=101, pretrained=False, **kwarg
     :param pretrained: If True, returns a model pre-trained on ImageNet.
     """
     if backbone == 'resnet18':
-        model = MiCTResNet(BasicBlock, [2, 2, 2, 2], n_classes, **kwargs)
+        model = MiCTResNet(BasicBlock, [2, 2, 2, 2], dropout, version, n_classes, **kwargs)
         if pretrained:
             model.transfer_weights(model_zoo.load_url(model_urls['resnet18']))
     elif backbone == 'resnet34':
-        model = MiCTResNet(BasicBlock, [3, 4, 6, 3], n_classes, **kwargs)
+        model = MiCTResNet(BasicBlock, [3, 4, 6, 3], dropout, version, n_classes, **kwargs)
         if pretrained:
             model.transfer_weights(model_zoo.load_url(model_urls['resnet34']))
     else:
