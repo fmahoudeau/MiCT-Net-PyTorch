@@ -69,7 +69,7 @@ As shown below, the size of the first 3D kernel has a significant impact on the 
 | 5x7x7                   | 16.03M      | 62.7 / 83.4     | 985 MB      | 2147        |
 | 7x7x7                   | 16.05M      | **63.3** / 83.8 | 985 MB      | 1981        |
 
-In the last experiment the temporal stride is reduced from 16 to 4. The best result of **69.3** for MiCT-ResNet-18 and **72.8** for MiCT-ResNet-34 are achieved for sequences of 300 frames. The only modified parameters are the batch size (96 and 80 respectively) and dropout (60 and 70 respectively).
+In the last experiment the temporal stride is reduced from 16 to 4. The best result of **69.3** for MiCT-ResNet-18 and **72.8** for MiCT-ResNet-34 are achieved for sequences of 300 frames. The only modified parameters are the batch size (96 and 80 respectively) and dropout (60% and 70% respectively).
 
 ![Top-1 accuracy as a function of clip length](results/MiCT-ResNet_Top-1_Acc_Wide.jpg)
 
