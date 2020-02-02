@@ -1,6 +1,6 @@
 # MiCT-Net for Video Recognition
 
-This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from the UCF-101 dataset classification task. It achieves **69.3 top-1 accuracy** with a ResNet-18 backbone and **72.8 top-1 accuracy** with ResNet-34. This repository is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
+This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from the UCF-101 dataset classification task. It achieves **69.3 top-1 cross-validated accuracy** with a ResNet-18 backbone and **72.8 top-1 cross-validated accuracy** with ResNet-34. This repository is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
 
 This repository includes:
 
@@ -11,6 +11,8 @@ This repository includes:
 * Code to prepare the UCF-101 dataset
 
 * Training and evaluation code for UCF-101
+
+* Pre-trained weights for MiCT-ResNet-18 and MiCT-ResNet-34
 
 The code is documented and designed to be easy to extend for your own dataset. If you use it in your projects, please consider citing this repository (bibtex below).
 
@@ -56,7 +58,7 @@ This section reports test results for the following experiments:
  
 The models are evaluated against the **top1** and **top5** accuracies. All results are averaged across the 3 standard splits. **MiCT-ResNet-18 leads by 1.5 point while being 3.1 times faster** which confirms the validity of the approach of the authors. The memory size is given for the processing of one video clip of 16 frames at a time (ie. batch size of one).
 
-|                                                         | Parameters  | Top1 / Top5     | Memory size |     FPS     |
+| Architecture                                            | Parameters  | Top1 / Top5     | Memory size |     FPS     |
 |---------------------------------------------------------|-------------|-----------------|-------------|-------------|
 | [MiCT-ResNet-18](results/MiCT-ResNet-18-7x7x7.jpg)      | 16.1M       | **63.3** / 83.8 | 985 MB      | **1981**    |
 | [3D-ResNet-18](results/3D-ResNet-18.jpg)                | 33.3M       | 61.8 / 83.3     | 1045 MB     | 644         |
@@ -77,6 +79,13 @@ It remains to be seen how MiCT-ResNet and 3D-ResNet architectures compare if the
 
 
 ## Training on Your Own
+I'm providing pre-trained weights on the first split of UCF-101 to make it easier to start. The validation accuracies are provided for 16 frames (clip) and 300 frames (video).
+
+| Architecture                                                                    | Parameters  | Clip / Video |
+|---------------------------------------------------------------------------------|-------------|--------------|
+| [MiCT-ResNet-18](https://1drv.ms/u/s!AvyZUg7UPo_CgdN0CZ9lbJsVihw-Lw?e=aWO657)   | 16.1M       | 67.1 / 69.6  |
+| [MiCT-ResNet-34](https://1drv.ms/u/s!AvyZUg7UPo_CgdN1booEiNyzTweTQQ?e=dkfjXW)   | 26.2M       | 69.0 / **73.8**  |
+
 You can train, evaluate and predict directly from the command line as such:
 
 ```
