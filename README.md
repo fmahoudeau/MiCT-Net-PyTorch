@@ -2,6 +2,8 @@
 
 This is an implementation of the Mixed Convolutional Tube (MiCT) on PyTorch with a ResNet backbone. The model predicts the human action in each video from the UCF-101 dataset classification task. It achieves **69.3 top-1 cross-validated accuracy** with a ResNet-18 backbone and **72.8 top-1 cross-validated accuracy** with ResNet-34. This repository is based on the work by Y. Zhou, X. Sun, Z-J Zha and W. Zeng described in this [paper](https://www.microsoft.com/en-us/research/uploads/prod/2018/05/Zhou_MiCT_Mixed_3D2D_CVPR_2018_paper.pdf) from Microsoft Research.
 
+**UPDATE:** You can find further information about this project in this [medium story](https://medium.com/@cryptains/mict-net-for-human-action-recognition-in-videos-3a18e4f97342).
+
 This repository includes:
 
 * Source code of MiCT-Net built on the ResNet backbone, and named MiCT-ResNet throughout the rest of this repository
@@ -29,7 +31,7 @@ As shown above, the architecture uses five 3D convolutions, one at the entrance 
 
 ## UCF-101 Dataset
 
-[UCF-101](https://www.crcv.ucf.edu/data/UCF101.php) is an action recognition data set of realistic action videos, collected from YouTube, having 101 action categories. It has served the Computer Vision community well for many years and continues to be used for Deep Learning. All videos are 320x240 in size at 25 frames per second. One thing to know when analysing the results below, is that despite its 13320 videos and 100+ clips for each of the 101 action categories, it is actually a relatively small data set for the task because of its low variability. This results in strong over-fitting on recent architectures with many parameters such as those with 3D convolutions, and makes their comparison difficult. All the clips are taken from only 2.5k distinct videos. For example there can be 7 clips from one video of a person playing piano. This means that there is far less variation than if the action in each clip was performed by a different person. Example frames of some of the human actions in UCF-101 are shown below.
+[UCF-101](https://www.crcv.ucf.edu/data/UCF101.php) is an action recognition data set of realistic action videos, collected from YouTube, having 101 action categories. It has served the Computer Vision community well for many years and continues to be used for Deep Learning. All videos are 320x240 in size at 25 frames per second. Example frames of some of the human actions in UCF-101 are shown below.
 
 ![UCF101 action examples](assets/UCF101.jpg)
 
